@@ -7,6 +7,13 @@ updates:
     groups:
       dev-dependencies:
         dependency-type: development
+    # Hold disruptive majors: TypeScript 7 (the Go rewrite) and vitest 4 aren't
+    # worth adopting for a package this small. Minor/patch updates still flow.
+    ignore:
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
+      - dependency-name: vitest
+        update-types: ["version-update:semver-major"]
     open-pull-requests-limit: 5
   - package-ecosystem: github-actions
     directory: "/"
