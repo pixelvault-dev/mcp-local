@@ -1,0 +1,48 @@
+{
+  "name": "pixelvault-mcp",
+  "version": "0.1.0",
+  "description": "Local (stdio) MCP server for PixelVault — upload images by file path, no base64 through the model context",
+  "type": "module",
+  "bin": {
+    "pixelvault-mcp": "./bin/pixelvault-mcp.mjs"
+  },
+  "files": [
+    "bin",
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [
+    "pixelvault",
+    "mcp",
+    "model-context-protocol",
+    "image-hosting",
+    "agent",
+    "upload"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pixelvault-dev/mcp-local"
+  },
+  "author": "PixelVault",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}
