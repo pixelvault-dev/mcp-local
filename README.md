@@ -1,4 +1,4 @@
-# pixelvault-mcp
+# @pixelvault-dev/local-mcp
 
 A **local (stdio) MCP server** for [PixelVault](https://pixelvault.dev) — agent-first image hosting.
 
@@ -16,7 +16,7 @@ local coding agents that have files on disk.
 Runs with `npx` — no global install needed:
 
 ```bash
-npx pixelvault-mcp
+npx @pixelvault-dev/local-mcp
 ```
 
 ## Configure
@@ -39,7 +39,7 @@ The server also reads `~/.pixelvault/config.json` if you've authenticated with t
   "mcpServers": {
     "pixelvault": {
       "command": "npx",
-      "args": ["-y", "pixelvault-mcp"],
+      "args": ["-y", "@pixelvault-dev/local-mcp"],
       "env": { "PIXELVAULT_API_KEY": "pv_live_xxx" }
     }
   }

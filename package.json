@@ -1,10 +1,10 @@
 {
-  "name": "pixelvault-mcp",
+  "name": "@pixelvault-dev/local-mcp",
   "version": "0.1.0",
   "description": "Local (stdio) MCP server for PixelVault — upload images by file path, no base64 through the model context",
   "type": "module",
   "bin": {
-    "pixelvault-mcp": "./bin/pixelvault-mcp.mjs"
+    "pixelvault-local-mcp": "./bin/pixelvault-local-mcp.mjs"
   },
   "files": [
     "bin",

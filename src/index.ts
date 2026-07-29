@@ -12,7 +12,7 @@ import { transformImage, transformImageInputSchema } from "./tools/transform-ima
 // there that isn't a framed JSON-RPC message corrupts the stream. All human/log
 // output MUST go to stderr.
 function logErr(msg: string): void {
-  process.stderr.write(`[pixelvault-mcp] ${msg}\n`);
+  process.stderr.write(`[pixelvault-local-mcp] ${msg}\n`);
 }
 
 // Shared hint appended to tools that return a CDN URL — lets an agent discover
