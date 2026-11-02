@@ -51,8 +51,9 @@ The server also reads `~/.pixelvault/config.json` if you've authenticated with t
 | Tool | What it does |
 | --- | --- |
 | `upload_image` | Upload by local **`path`** (streamed, no base64), or `source_url`, or `data`. Optional `folder`, `visibility`, `expires_in`. |
-| `list_images` | List images in your project (paginated). |
+| `list_images` | List images in your project (paginated), optionally filtered by custom `metadata`. |
 | `get_image` | Metadata for one image by id. |
+| `update_image_metadata` | Replace an image's custom metadata (replaces, not merges; `null` clears). |
 | `delete_image` | Permanently delete an image by id. |
 | `sign_url` | Mint a time-limited signed URL for a private image. |
 | `transform_image` | Build an on-the-fly transform URL (resize, crop, format, AI background removal, effects). |

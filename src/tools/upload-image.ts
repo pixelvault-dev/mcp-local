@@ -43,6 +43,13 @@ export const uploadImageInputSchema = {
         "files. Provide exactly one of path, source_url, or data."
     ),
   folder: z.string().optional().describe("Optional folder/path prefix for the image."),
+  metadata: z
+    .record(z.string(), z.unknown())
+    .optional()
+    .describe(
+      "Optional custom metadata (JSON object, max 50 top-level keys / 4 KB) stored with the image and " +
+        "filterable later via list_images. Change it afterwards with update_image_metadata."
+    ),
   filename: z.string().optional().describe("Optional filename override, e.g. photo.png."),
   visibility: z
     .enum(["public", "private"])
@@ -85,12 +92,14 @@ export async function uploadImage(args: {
   source_url?: string;
   data?: string;
   folder?: string;
+  metadata?: Record<string, unknown>;
   filename?: string;
   visibility?: "public" | "private";
   expires_in?: number;
   sign_expires_in?: number;
 }): Promise<ToolResult> {
   const { path, source_url, data, folder, filename, visibility, expires_in, sign_expires_in } = args;
+  const metadata = args.metadata && Object.keys(args.metadata).length > 0 ? args.metadata : undefined;
 
   const provided = [path, source_url, data].filter((v) => v !== undefined).length;
   if (provided !== 1) {
@@ -106,6 +115,7 @@ export async function uploadImage(args: {
         body: {
           url: source_url,
           ...(folder !== undefined ? { folder } : {}),
+          ...(metadata !== undefined ? { metadata } : {}),
           ...(visibility !== undefined ? { visibility } : {}),
           ...(expires_in !== undefined ? { expires_in } : {}),
           ...(sign_expires_in !== undefined ? { sign_expires_in } : {}),
@@ -147,6 +157,7 @@ export async function uploadImage(args: {
     const part = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
     form.append("file", new Blob([part], { type: contentType }), name);
     if (folder !== undefined) form.append("folder", folder);
+    if (metadata !== undefined) form.append("metadata", JSON.stringify(metadata));
     if (visibility !== undefined) form.append("visibility", visibility);
     if (expires_in !== undefined) form.append("expires_in", String(expires_in));
     if (sign_expires_in !== undefined) form.append("sign_expires_in", String(sign_expires_in));
