@@ -52,4 +52,22 @@ describe("metadata support", () => {
     await updateImageMetadata({ id: "img_1", metadata: null });
     expect(JSON.parse(String(calls[1]!.init.body))).toEqual({ metadata: null });
   });
+
+  it("list_images sends q (trimmed away when blank)", async () => {
+    await listImages({ q: "invoice 4821" });
+    expect(new URL(calls[0]!.url).searchParams.get("q")).toBe("invoice 4821");
+    await listImages({ q: "  " });
+    expect(calls[1]!.url).not.toContain("q=");
+  });
+
+  it("upload_image sends describe=true in the JSON body and the form, only when set", async () => {
+    await uploadImage({ source_url: "https://example.com/a.png", describe: true });
+    expect(JSON.parse(String(calls[0]!.init.body))).toMatchObject({ describe: true });
+    await uploadImage({ data: "iVBORw0KGgo=", describe: true });
+    expect((calls[1]!.init.body as FormData).get("describe")).toBe("true");
+    await uploadImage({ data: "iVBORw0KGgo=" });
+    expect((calls[2]!.init.body as FormData).get("describe")).toBeNull();
+    await uploadImage({ source_url: "https://example.com/a.png" });
+    expect(JSON.parse(String(calls[3]!.init.body))).not.toHaveProperty("describe");
+  });
 });

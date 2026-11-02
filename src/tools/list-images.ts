@@ -11,6 +11,14 @@ export const listImagesInputSchema = {
     .max(100)
     .optional()
     .describe("Items per page (default 20, max 100)."),
+  q: z
+    .string()
+    .max(200)
+    .optional()
+    .describe(
+      "Full-text search over the AI description (alt text, caption, OCR text) of images uploaded with " +
+        'describe=true, best match first, e.g. "invoice 4821". Words are ANDed; quote phrases; -word excludes.'
+    ),
   metadata: z
     .record(z.string(), z.unknown())
     .optional()
@@ -21,7 +29,7 @@ export const listImagesInputSchema = {
 };
 
 /** list_images — list images in the project (GET /v1/images), paginated. */
-export async function listImages(args: { page?: number; per_page?: number; metadata?: Record<string, unknown> }): Promise<ToolResult> {
+export async function listImages(args: { page?: number; per_page?: number; metadata?: Record<string, unknown>; q?: string }): Promise<ToolResult> {
   try {
     const res = await apiRequest<unknown>({
       method: "GET",
@@ -29,6 +37,7 @@ export async function listImages(args: { page?: number; per_page?: number; metad
       query: {
         page: args.page,
         per_page: args.per_page,
+        q: args.q && args.q.trim() !== "" ? args.q : undefined,
         metadata:
           args.metadata && Object.keys(args.metadata).length > 0
             ? JSON.stringify(args.metadata)
