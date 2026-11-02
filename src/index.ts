@@ -5,6 +5,7 @@ import { uploadImage, uploadImageInputSchema } from "./tools/upload-image.js";
 import { listImages, listImagesInputSchema } from "./tools/list-images.js";
 import { getImage, getImageInputSchema } from "./tools/get-image.js";
 import { deleteImage, deleteImageInputSchema } from "./tools/delete-image.js";
+import { updateImageMetadata, updateImageMetadataInputSchema } from "./tools/update-image-metadata.js";
 import { signUrl, signUrlInputSchema } from "./tools/sign-url.js";
 import { transformImage, transformImageInputSchema } from "./tools/transform-image.js";
 
@@ -25,7 +26,7 @@ const transformHint =
   "valid transform URL for you. See https://pixelvault.dev/docs#transforms.";
 
 function buildServer(): McpServer {
-  const server = new McpServer({ name: "pixelvault-local", version: "0.1.0" });
+  const server = new McpServer({ name: "pixelvault-local", version: "0.2.0" });
 
   server.registerTool(
     "upload_image",
@@ -36,7 +37,7 @@ function buildServer(): McpServer {
         "a LOCAL file path the server reads off disk and streams — so large files " +
         "aren't base64-encoded into the model context. Alternatively pass " +
         "`source_url` (a public https URL the API imports) or `data` (base64 bytes). " +
-        "Optional `folder`, `filename`, `visibility` (private → signed URL, needs a " +
+        "Optional `folder`, `metadata` (custom JSON tags), `filename`, `visibility` (private → signed URL, needs a " +
         "secret key), `expires_in` (auto-expiring image), `sign_expires_in`. Max 5 MB; " +
         "JPG/PNG/GIF/WebP/AVIF/SVG." +
         transformHint,
@@ -51,7 +52,7 @@ function buildServer(): McpServer {
       title: "List images",
       description:
         "List images in your PixelVault project, most recent first (GET /v1/images), " +
-        "paginated via `page`/`per_page`." +
+        "paginated via `page`/`per_page`; optional `metadata` filters by custom metadata." +
         transformHint,
       inputSchema: listImagesInputSchema,
     },
@@ -79,6 +80,19 @@ function buildServer(): McpServer {
       inputSchema: deleteImageInputSchema,
     },
     (args) => deleteImage(args)
+  );
+
+  server.registerTool(
+    "update_image_metadata",
+    {
+      title: "Update image metadata",
+      description:
+        "Replace one image's custom metadata (a JSON object you can later filter list_images by). " +
+        "The object replaces the stored one, so send every key to keep; null clears it " +
+        "(PATCH /v1/images/:id).",
+      inputSchema: updateImageMetadataInputSchema,
+    },
+    (args) => updateImageMetadata(args)
   );
 
   server.registerTool(
