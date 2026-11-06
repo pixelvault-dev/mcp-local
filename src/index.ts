@@ -8,6 +8,7 @@ import { deleteImage, deleteImageInputSchema } from "./tools/delete-image.js";
 import { updateImageMetadata, updateImageMetadataInputSchema } from "./tools/update-image-metadata.js";
 import { signUrl, signUrlInputSchema } from "./tools/sign-url.js";
 import { transformImage, transformImageInputSchema } from "./tools/transform-image.js";
+import { optimizeImage, optimizeImageInputSchema } from "./tools/optimize-image.js";
 
 // On the stdio transport, STDOUT is the MCP protocol channel — anything written
 // there that isn't a framed JSON-RPC message corrupts the stream. All human/log
@@ -26,7 +27,7 @@ const transformHint =
   "valid transform URL for you. See https://pixelvault.dev/docs#transforms.";
 
 function buildServer(): McpServer {
-  const server = new McpServer({ name: "pixelvault-local", version: "0.3.0" });
+  const server = new McpServer({ name: "pixelvault-local", version: "0.4.0" });
 
   server.registerTool(
     "upload_image",
@@ -121,6 +122,23 @@ function buildServer(): McpServer {
       inputSchema: transformImageInputSchema,
     },
     (args) => transformImage(args)
+  );
+
+  server.registerTool(
+    "optimize_image",
+    {
+      title: "Optimize local image",
+      description:
+        "Compress, resize and convert a LOCAL image file on this machine — no API key, nothing is uploaded. " +
+        "Use before committing or attaching an image, or when asked to make an image smaller. " +
+        "`path` is the file; optional `format` (keep|webp|avif|jpg|png, default keep), `max_width`/`max_height` " +
+        "(never upscales), `quality` (1-100, default 80), `keep_metadata` (EXIF/GPS is stripped by default), " +
+        "`output_path` or `in_place`, and `dry_run` to preview. Writes <name>.optimized.<ext> next to the original " +
+        "by default and never makes a file bigger (an already-optimal file is left alone). Supports JPG/PNG/WebP/AVIF; " +
+        "for an image already hosted on PixelVault use transform_image (fmt/q/w) instead.",
+      inputSchema: optimizeImageInputSchema,
+    },
+    (args) => optimizeImage(args)
   );
 
   return server;
