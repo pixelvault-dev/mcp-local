@@ -56,10 +56,21 @@ The server also reads `~/.pixelvault/config.json` if you've authenticated with t
 | `update_image_metadata` | Replace an image's custom metadata (replaces, not merges; `null` clears). |
 | `delete_image` | Permanently delete an image by id. |
 | `sign_url` | Mint a time-limited signed URL for a private image. |
+| `optimize_image` | Compress, resize and convert a **local** image file on this machine (no API key, nothing uploaded). Writes `<name>.optimized.<ext>`; never makes a file bigger. |
 | `transform_image` | Build an on-the-fly transform URL (resize, crop, format, AI background removal, effects). |
 
 Every returned CDN URL supports on-the-fly transforms via query params — see the
 [transforms docs](https://pixelvault.dev/docs#transforms).
+
+### `optimize_image`
+
+Runs entirely locally with [`sharp`](https://sharp.pixelplumbing.com/), an **optional** dependency: if it can't be
+installed for your platform the tool returns a `sharp_unavailable` error and every other tool is unaffected. Needs
+Node 20.9+. Inputs: `path`, `format` (`keep|webp|avif|jpg|png`, default `keep`), `max_width`/`max_height` (never
+upscales), `quality` (default 80), `keep_metadata`, `output_path` or `in_place`, `dry_run`. EXIF/GPS metadata is stripped
+by default (orientation is applied first). It refuses to overwrite an existing file (other than `*.optimized.*`), never
+follows symlinks, writes atomically, and leaves already-optimal files alone, so it is safe to call repeatedly. The same
+engine ships in the [`pixelvault-cli`](https://www.npmjs.com/package/pixelvault-cli) `optimize` command.
 
 ## License
 

@@ -10,5 +10,7 @@ export default defineConfig({
   sourcemap: true,
   dts: false,
   splitting: false,
+  // Optional native dependency, loaded lazily by optimize_image only.
+  external: ["sharp"],
   banner: {},
 });

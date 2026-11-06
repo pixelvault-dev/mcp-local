@@ -1,6 +1,6 @@
 {
   "name": "@pixelvault-dev/local-mcp",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Local (stdio) MCP server for PixelVault — upload images by file path, no base64 through the model context",
   "type": "module",
   "bin": {
@@ -53,5 +53,8 @@
     "tsup": "^8.0.0",
     "typescript": "^5.7.0",
     "vitest": "^3.0.0"
+  },
+  "optionalDependencies": {
+    "sharp": "^0.35.5"
   }
 }
