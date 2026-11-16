@@ -18,10 +18,13 @@ interface ApiErrorBody {
 interface RequestOptions {
   method?: string;
   path: string;
-  /** JSON body (mutually exclusive with `form`). */
+  /** JSON body (mutually exclusive with `form` and `raw`). */
   body?: unknown;
-  /** multipart/form-data body (mutually exclusive with `body`). */
+  /** multipart/form-data body (mutually exclusive with `body` and `raw`). */
   form?: FormData;
+  /** Raw request body. */
+  raw?: BodyInit;
+  headers?: Record<string, string>;
   /** Query-string params. */
   query?: Record<string, string | number | undefined>;
 }
@@ -53,13 +56,18 @@ export async function apiRequest<T>(options: RequestOptions): Promise<T> {
     if (s) url += `?${s}`;
   }
 
-  const headers: Record<string, string> = { Authorization: `Bearer ${apiKey}` };
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${apiKey}`,
+    ...options.headers,
+  };
   let fetchBody: BodyInit | undefined;
   if (options.form) {
     fetchBody = options.form; // fetch sets the multipart boundary Content-Type
   } else if (options.body !== undefined) {
     headers["Content-Type"] = "application/json";
     fetchBody = JSON.stringify(options.body);
+  } else {
+    fetchBody = options.raw;
   }
 
   let res: Response;
