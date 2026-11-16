@@ -20,11 +20,11 @@ function logErr(msg: string): void {
 // Shared hint appended to tools that return a CDN URL — lets an agent discover
 // that the URL supports on-the-fly transforms via query params (no extra call).
 const transformHint =
-  " The returned CDN URL supports on-the-fly transforms via query params — " +
+  " Image CDN URLs support on-the-fly transforms via query params — " +
   "e.g. ?w=400&fit=cover (resize/crop), ?fmt=webp (format), " +
   "?segment=foreground (AI background removal → transparent PNG), and effects " +
   "like ?blur=30&saturation=0&rotate=90. Or call transform_image to build a " +
-  "valid transform URL for you. See https://pixelvault.dev/docs#transforms.";
+  "valid transform URL for you. PDFs are forced downloads and reject transforms. See https://pixelvault.dev/docs#transforms.";
 
 function buildServer(): McpServer {
   const server = new McpServer({ name: "pixelvault-local", version: "0.4.0" });
@@ -32,15 +32,15 @@ function buildServer(): McpServer {
   server.registerTool(
     "upload_image",
     {
-      title: "Upload image",
+      title: "Upload image or PDF",
       description:
-        "Upload an image to PixelVault and get an instant CDN URL. Prefer `path` — " +
+        "Upload an image or PDF to PixelVault and get an instant CDN URL. Prefer `path` — " +
         "a LOCAL file path the server reads off disk and streams — so large files " +
         "aren't base64-encoded into the model context. Alternatively pass " +
         "`source_url` (a public https URL the API imports) or `data` (base64 bytes). " +
-        "Optional `folder`, `metadata` (custom JSON tags), `describe` (AI alt text + caption + OCR, async), `filename`, `visibility` (private → signed URL, needs a " +
-        "secret key), `expires_in` (auto-expiring image), `sign_expires_in`. Max 5 MB; " +
-        "JPG/PNG/GIF/WebP/AVIF/SVG." +
+        "Optional `folder`, `metadata` (custom JSON tags), `describe` (images only: AI alt text + caption + OCR, async), `filename`, `visibility` (private → signed URL, needs a " +
+        "secret key), `expires_in` (auto-expiring upload), `sign_expires_in`. Max 5 MB; " +
+        "JPG/PNG/GIF/WebP/AVIF/SVG/PDF." +
         transformHint,
       inputSchema: uploadImageInputSchema,
     },

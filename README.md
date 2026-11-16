@@ -1,11 +1,11 @@
 # @pixelvault-dev/local-mcp
 
-A **local (stdio) MCP server** for [PixelVault](https://pixelvault.dev) — agent-first image hosting.
+A **local (stdio) MCP server** for [PixelVault](https://pixelvault.dev) — agent-first image and PDF hosting.
 
 The difference from the hosted MCP server (`mcp.pixelvault.dev`): this one runs on
 **your** machine, so it can upload a **local file by path**. It reads the bytes off
 disk and streams them to the API as `multipart/form-data` — the file is never
-base64-encoded into the model's context. That keeps large images (and slow,
+base64-encoded into the model's context. That keeps large images and PDFs (and slow,
 token-hungry base64 round-trips) out of the conversation.
 
 Use the hosted server when your client is remote (ChatGPT, etc.); use this one for
@@ -50,7 +50,7 @@ The server also reads `~/.pixelvault/config.json` if you've authenticated with t
 
 | Tool | What it does |
 | --- | --- |
-| `upload_image` | Upload by local **`path`** (streamed, no base64), or `source_url`, or `data`. Optional `folder`, `visibility`, `expires_in`, `metadata`, `describe` (AI alt text + caption + OCR in the background; read it with `get_image`). |
+| `upload_image` | Upload an image or PDF by local **`path`** (streamed, no base64), or `source_url`, or `data`. Optional `folder`, `visibility`, `expires_in`, `metadata`, `describe` (images only: AI alt text + caption + OCR in the background; read it with `get_image`). PDF URLs are forced downloads and reject image transforms. |
 | `list_images` | List images in your project (paginated), optionally filtered by custom `metadata` or searched by AI description (`q`: alt text, caption, OCR text). |
 | `get_image` | Metadata for one image by id. |
 | `update_image_metadata` | Replace an image's custom metadata (replaces, not merges; `null` clears). |
@@ -59,8 +59,8 @@ The server also reads `~/.pixelvault/config.json` if you've authenticated with t
 | `optimize_image` | Compress, resize and convert a **local** image file on this machine (no API key, nothing uploaded). Writes `<name>.optimized.<ext>`; never makes a file bigger. |
 | `transform_image` | Build an on-the-fly transform URL (resize, crop, format, AI background removal, effects). |
 
-Every returned CDN URL supports on-the-fly transforms via query params — see the
-[transforms docs](https://pixelvault.dev/docs#transforms).
+Image CDN URLs support on-the-fly transforms via query params — see the
+[transforms docs](https://pixelvault.dev/docs#transforms). PDFs are download-only attachments and do not support transforms.
 
 ### `optimize_image`
 
