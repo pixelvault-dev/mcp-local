@@ -3,10 +3,9 @@
 A **local (stdio) MCP server** for [PixelVault](https://pixelvault.dev) — agent-first media hosting.
 
 The difference from the hosted MCP server (`mcp.pixelvault.dev`): this one runs on
-**your** machine, so it can upload a local image, PDF, or MP4 by path. It reads the
-bytes off disk and sends them directly to the API; the file is never base64-encoded
-into the model's context. That keeps media bytes and slow, token-hungry base64
-round-trips out of the conversation.
+**your** machine, so it can upload a local image, PDF, MP4, MP3, WAV, M4A, or OGG by path. It reads the
+bytes off disk and sends them directly to the API; the file is never base64-encoded into the model's context.
+That keeps media bytes and slow, token-hungry base64 round-trips out of the conversation.
 
 Use the hosted server when your client is remote (ChatGPT, etc.); use this one for
 local coding agents that have files on disk.
@@ -62,6 +61,9 @@ The server also reads `~/.pixelvault/config.json` if you've authenticated with t
 | `list_videos` / `get_video` | Discover videos or resume from a stable asset ID; returns current job state and only artifact URLs that exist. |
 | `optimize_video` / `enrich_video` | Start asynchronous social optimization or transcript/storyboard enrichment. Returns asset/job IDs immediately by default; optional bounded wait never cancels a timed-out server job. |
 | `update_video` / `sign_video_url` / `delete_video` | Update organization/metadata, mint fresh private original/artifact URLs, or delete the video and derivatives. |
+| `upload_audio` | Host a local MP3/WAV/M4A/OGG `path` or securely import `source_url`. Supports privacy, TTL, metadata, folder, collection, private URL expiry, and idempotency. |
+| `list_audio` / `get_audio` | Discover original audio and detected container/codec/duration/sample-rate/channel metadata by stable `aud_` ID. |
+| `update_audio` / `sign_audio_url` / `delete_audio` | Update organization/metadata, mint a fresh private original URL, or delete the audio. |
 
 Image CDN URLs support on-the-fly transforms via query params — see the
 [transforms docs](https://pixelvault.dev/docs#transforms). PDFs are download-only attachments and do not support transforms.
@@ -72,6 +74,16 @@ Image CDN URLs support on-the-fly transforms via query params — see the
 2. Call `enrich_video` with the returned `id` and `wait: false`. Persist `id` and `enrichment.job_id` immediately.
 3. After interruption or in a later turn, call `get_video` with the asset ID. Poll while status is `pending` or `processing`.
 4. On `complete`, return `original_url` plus the transcript/storyboard entries present in `enrichment`. On `failed`, return its safe error. For private videos, call `sign_video_url` when fresh bearer URLs are needed.
+
+### Audio hosting workflow
+
+1. Call `upload_audio` with a local `path` or public `source_url`, optional lifecycle fields, and an `idempotency_key`.
+2. Persist the returned stable `aud_` ID and original URL. PixelVault validates actual MP3, PCM/float WAV, AAC M4A, or Opus/Vorbis OGG bytes.
+3. Resume with `get_audio` or `list_audio`; use `sign_audio_url` for a fresh private link and `delete_audio` for permanent removal.
+
+Audio originals have an approved global maximum of 25,000,000 bytes. This is not a plan allowance. URL import
+uses the same product limit. The original is preserved without transcoding; editing, conversion, HLS/DASH, and
+audio transcription are intentionally unsupported. Private audio never falls back to a public URL.
 
 Local binary upload intentionally uses the API's direct MP4 route and rejects files over 100 MB before reading them.
 Use an official SDK's resumable upload for larger local files. URL imports require a public HTTPS source. Optimization

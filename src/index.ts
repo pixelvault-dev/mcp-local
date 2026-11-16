@@ -27,6 +27,20 @@ import {
   uploadVideo,
   uploadVideoInputSchema,
 } from "./tools/video.js";
+import {
+  deleteAudio,
+  deleteAudioInputSchema,
+  getAudio,
+  getAudioInputSchema,
+  listAudio,
+  listAudioInputSchema,
+  signAudioUrl,
+  signAudioUrlInputSchema,
+  updateAudio,
+  updateAudioInputSchema,
+  uploadAudio,
+  uploadAudioInputSchema,
+} from "./tools/audio.js";
 
 // On the stdio transport, STDOUT is the MCP protocol channel — anything written
 // there that isn't a framed JSON-RPC message corrupts the stream. All human/log
@@ -45,7 +59,7 @@ const transformHint =
   "valid transform URL for you. PDFs are forced downloads and reject transforms. See https://pixelvault.dev/docs#transforms.";
 
 function buildServer(): McpServer {
-  const server = new McpServer({ name: "pixelvault-local", version: "0.5.0" });
+  const server = new McpServer({ name: "pixelvault-local", version: "0.6.0" });
 
   server.registerTool(
     "upload_image",
@@ -249,6 +263,69 @@ function buildServer(): McpServer {
       inputSchema: deleteVideoInputSchema,
     },
     (args) => deleteVideo(args)
+  );
+
+  server.registerTool(
+    "upload_audio",
+    {
+      title: "Upload audio",
+      description:
+        "Upload a local MP3, WAV, M4A, or OGG path or securely import a public HTTP(S) URL. " +
+        "Supports public/private access, deletion TTL, folder, collection, metadata, private URL expiry, and replay-safe idempotency. " +
+        "The server validates actual container/codec bytes. Originals are limited to the approved global 25,000,000-byte maximum, not a plan allowance.",
+      inputSchema: uploadAudioInputSchema,
+    },
+    (args) => uploadAudio(args)
+  );
+
+  server.registerTool(
+    "list_audio",
+    {
+      title: "List audio",
+      description: "List project audio with pagination and optional folder, collection, or metadata filters.",
+      inputSchema: listAudioInputSchema,
+    },
+    (args) => listAudio(args)
+  );
+
+  server.registerTool(
+    "get_audio",
+    {
+      title: "Get audio",
+      description: "Get original URL, privacy, expiry, container, codec, duration, sample rate, channels, and organization by stable aud_ ID.",
+      inputSchema: getAudioInputSchema,
+    },
+    (args) => getAudio(args)
+  );
+
+  server.registerTool(
+    "update_audio",
+    {
+      title: "Update audio",
+      description: "Replace audio metadata, folder, or existing collection membership. Null clears a field.",
+      inputSchema: updateAudioInputSchema,
+    },
+    (args) => updateAudio(args)
+  );
+
+  server.registerTool(
+    "sign_audio_url",
+    {
+      title: "Sign audio URL",
+      description: "Mint a fresh time-limited URL for a private audio original. This does not change asset privacy or deletion TTL.",
+      inputSchema: signAudioUrlInputSchema,
+    },
+    (args) => signAudioUrl(args)
+  );
+
+  server.registerTool(
+    "delete_audio",
+    {
+      title: "Delete audio",
+      description: "Permanently delete an audio original and release its storage accounting.",
+      inputSchema: deleteAudioInputSchema,
+    },
+    (args) => deleteAudio(args)
   );
   return server;
 }
