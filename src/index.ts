@@ -9,6 +9,24 @@ import { updateImageMetadata, updateImageMetadataInputSchema } from "./tools/upd
 import { signUrl, signUrlInputSchema } from "./tools/sign-url.js";
 import { transformImage, transformImageInputSchema } from "./tools/transform-image.js";
 import { optimizeImage, optimizeImageInputSchema } from "./tools/optimize-image.js";
+import {
+  deleteVideo,
+  deleteVideoInputSchema,
+  enrichVideo,
+  enrichVideoInputSchema,
+  getVideo,
+  getVideoInputSchema,
+  listVideos,
+  listVideosInputSchema,
+  optimizeVideo,
+  optimizeVideoInputSchema,
+  signVideoUrl,
+  signVideoUrlInputSchema,
+  updateVideo,
+  updateVideoInputSchema,
+  uploadVideo,
+  uploadVideoInputSchema,
+} from "./tools/video.js";
 
 // On the stdio transport, STDOUT is the MCP protocol channel — anything written
 // there that isn't a framed JSON-RPC message corrupts the stream. All human/log
@@ -27,7 +45,7 @@ const transformHint =
   "valid transform URL for you. PDFs are forced downloads and reject transforms. See https://pixelvault.dev/docs#transforms.";
 
 function buildServer(): McpServer {
-  const server = new McpServer({ name: "pixelvault-local", version: "0.4.0" });
+  const server = new McpServer({ name: "pixelvault-local", version: "0.5.0" });
 
   server.registerTool(
     "upload_image",
@@ -141,6 +159,97 @@ function buildServer(): McpServer {
     (args) => optimizeImage(args)
   );
 
+
+  server.registerTool(
+    "upload_video",
+    {
+      title: "Upload video",
+      description:
+        "Upload a local MP4 path (direct uploads up to 100 MB) or securely import a public HTTPS MP4 URL. " +
+        "Supports public/private access, deletion TTL, folder, collection, metadata, private URL expiry, " +
+        "social-ready optimization, and replay-safe idempotency. Returns the stable asset ID immediately.",
+      inputSchema: uploadVideoInputSchema,
+    },
+    (args) => uploadVideo(args)
+  );
+
+  server.registerTool(
+    "list_videos",
+    {
+      title: "List videos",
+      description: "List project videos with pagination and optional folder, collection, or metadata filters.",
+      inputSchema: listVideosInputSchema,
+    },
+    (args) => listVideos(args)
+  );
+
+  server.registerTool(
+    "get_video",
+    {
+      title: "Get video",
+      description:
+        "Resume from a stable video asset ID and return current optimization/enrichment status plus only the " +
+        "original, poster, transcript, storyboard, and optimized URLs that exist.",
+      inputSchema: getVideoInputSchema,
+    },
+    (args) => getVideo(args)
+  );
+
+  server.registerTool(
+    "update_video",
+    {
+      title: "Update video",
+      description: "Replace video metadata, folder, or existing collection membership. Null clears a field.",
+      inputSchema: updateVideoInputSchema,
+    },
+    (args) => updateVideo(args)
+  );
+
+  server.registerTool(
+    "sign_video_url",
+    {
+      title: "Sign video URLs",
+      description:
+        "Mint expiry-matched private original, poster, optimized, and available enrichment artifact URLs. " +
+        "No artifact URL is invented before the artifact exists.",
+      inputSchema: signVideoUrlInputSchema,
+    },
+    (args) => signVideoUrl(args)
+  );
+
+  server.registerTool(
+    "optimize_video",
+    {
+      title: "Optimize video",
+      description:
+        "Start social-ready optimization. Returns asset/job IDs immediately by default; optional bounded polling " +
+        "can be resumed with get_video. Local timeout does not cancel the server job.",
+      inputSchema: optimizeVideoInputSchema,
+    },
+    (args) => optimizeVideo(args)
+  );
+
+  server.registerTool(
+    "enrich_video",
+    {
+      title: "Enrich video",
+      description:
+        "Start transcript/storyboard enrichment. Returns asset/job IDs immediately by default; optional bounded " +
+        "polling can be resumed with get_video. Local timeout does not cancel the server job.",
+      inputSchema: enrichVideoInputSchema,
+    },
+    (args) => enrichVideo(args)
+  );
+
+  server.registerTool(
+    "delete_video",
+    {
+      title: "Delete video",
+      description: "Permanently delete a video original and all available derived artifacts.",
+      inputSchema: deleteVideoInputSchema,
+    },
+    (args) => deleteVideo(args)
+  );
   return server;
 }
 
