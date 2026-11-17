@@ -67,7 +67,7 @@ The server also reads `~/.pixelvault/config.json` if you've authenticated with t
 | `update_audio` / `sign_audio_url` / `delete_audio` | Update organization/metadata, mint fresh private original/transcript URLs, or delete audio and artifacts. |
 
 Image CDN URLs support on-the-fly transforms via query params — see the
-[transforms docs](https://pixelvault.dev/docs#transforms). PDFs are download-only attachments and do not support transforms.
+[transforms docs](https://pixelvault.dev/docs/transforms/). PDFs are download-only attachments and do not support transforms.
 
 ### Resume-safe video workflow
 

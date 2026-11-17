@@ -58,7 +58,7 @@ const transformHint =
   "e.g. ?w=400&fit=cover (resize/crop), ?fmt=webp (format), " +
   "?segment=foreground (AI background removal → transparent PNG), and effects " +
   "like ?blur=30&saturation=0&rotate=90. Or call transform_image to build a " +
-  "valid transform URL for you. PDFs are forced downloads and reject transforms. See https://pixelvault.dev/docs#transforms.";
+  "valid transform URL for you. PDFs are forced downloads and reject transforms. See https://pixelvault.dev/docs/transforms/.";
 
 function buildServer(): McpServer {
   const server = new McpServer({ name: "pixelvault-local", version: "0.6.0" });
@@ -152,7 +152,7 @@ function buildServer(): McpServer {
         "format/quality, AI background removal, blur/sharpen/rotate/flip, " +
         "brightness/contrast/saturation, and same-project watermark tiling). Provide " +
         "exactly one of `url` (a PixelVault CDN URL) or `id` (resolved via the API), " +
-        "plus one or more transform params. See https://pixelvault.dev/docs#transforms.",
+        "plus one or more transform params. See https://pixelvault.dev/docs/transforms/.",
       inputSchema: transformImageInputSchema,
     },
     (args) => transformImage(args)
