@@ -64,10 +64,26 @@ export const signAudioUrlInputSchema = {
   expires_in: z.number().int().min(60).max(2_592_000).optional(),
 };
 
+export const enrichAudioInputSchema = {
+  id: z.string().describe("Stable audio asset ID (aud_...)."),
+  wait: z
+    .boolean()
+    .optional()
+    .describe("Poll until terminal state. False returns asset/job IDs immediately for later resume with get_audio."),
+  timeout_seconds: z
+    .number()
+    .int()
+    .min(1)
+    .max(3600)
+    .optional()
+    .describe("Local wait limit; timeout never cancels the server job. Default 600."),
+};
+
 interface AudioAsset {
   id: string;
   visibility?: "public" | "private";
   original_url?: string;
+  enrichment?: { status?: string; job_id?: string; [key: string]: unknown };
   [key: string]: unknown;
 }
 
@@ -236,6 +252,38 @@ export async function signAudioUrl(args: { id: string; expires_in?: number }): P
       body: args.expires_in === undefined ? {} : { expires_in: args.expires_in },
     });
     return toolOk(response.data);
+  } catch (error) {
+    return toolFromError(error);
+  }
+}
+
+export async function enrichAudio(args: {
+  id: string;
+  wait?: boolean;
+  timeout_seconds?: number;
+}): Promise<ToolResult> {
+  try {
+    let response = await apiRequest<DataResponse<AudioAsset>>({
+      method: "POST",
+      path: `/v1/audio/${encodeURIComponent(args.id)}/enrich`,
+    });
+    let audio = response.data;
+    if (!args.wait) return toolOk(audio);
+
+    const deadline = Date.now() + (args.timeout_seconds ?? 600) * 1000;
+    let delay = 1000;
+    for (;;) {
+      const status = audio.enrichment?.status;
+      if (status !== "pending" && status !== "processing") return toolOk(audio);
+      const remaining = deadline - Date.now();
+      if (remaining <= 0) return toolOk({ ...audio, wait_timed_out: true });
+      await new Promise((resolve) => setTimeout(resolve, Math.min(delay, remaining)));
+      response = await apiRequest<DataResponse<AudioAsset>>({
+        path: `/v1/audio/${encodeURIComponent(args.id)}`,
+      });
+      audio = response.data;
+      delay = Math.min(Math.ceil(delay * 1.5), 5000);
+    }
   } catch (error) {
     return toolFromError(error);
   }

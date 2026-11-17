@@ -62,8 +62,9 @@ The server also reads `~/.pixelvault/config.json` if you've authenticated with t
 | `optimize_video` / `enrich_video` | Start asynchronous social optimization or transcript/storyboard enrichment. Returns asset/job IDs immediately by default; optional bounded wait never cancels a timed-out server job. |
 | `update_video` / `sign_video_url` / `delete_video` | Update organization/metadata, mint fresh private original/artifact URLs, or delete the video and derivatives. |
 | `upload_audio` | Host a local MP3/WAV/M4A/OGG `path` or securely import `source_url`. Supports privacy, TTL, metadata, folder, collection, private URL expiry, and idempotency. |
-| `list_audio` / `get_audio` | Discover original audio and detected container/codec/duration/sample-rate/channel metadata by stable `aud_` ID. |
-| `update_audio` / `sign_audio_url` / `delete_audio` | Update organization/metadata, mint a fresh private original URL, or delete the audio. |
+| `enrich_audio` | Start/resume transcription by `aud_` ID. Return IDs immediately or use bounded polling for text, WebVTT, and timestamped JSON. |
+| `list_audio` / `get_audio` | Discover audio, transcription status/artifacts, and detected media metadata by stable `aud_` ID. |
+| `update_audio` / `sign_audio_url` / `delete_audio` | Update organization/metadata, mint fresh private original/transcript URLs, or delete audio and artifacts. |
 
 Image CDN URLs support on-the-fly transforms via query params — see the
 [transforms docs](https://pixelvault.dev/docs#transforms). PDFs are download-only attachments and do not support transforms.
@@ -75,15 +76,18 @@ Image CDN URLs support on-the-fly transforms via query params — see the
 3. After interruption or in a later turn, call `get_video` with the asset ID. Poll while status is `pending` or `processing`.
 4. On `complete`, return `original_url` plus the transcript/storyboard entries present in `enrichment`. On `failed`, return its safe error. For private videos, call `sign_video_url` when fresh bearer URLs are needed.
 
-### Audio hosting workflow
+### Audio transcription workflow
 
 1. Call `upload_audio` with a local `path` or public `source_url`, optional lifecycle fields, and an `idempotency_key`.
-2. Persist the returned stable `aud_` ID and original URL. PixelVault validates actual MP3, PCM/float WAV, AAC M4A, or Opus/Vorbis OGG bytes.
-3. Resume with `get_audio` or `list_audio`; use `sign_audio_url` for a fresh private link and `delete_audio` for permanent removal.
+2. Persist the returned stable `aud_` ID. Call `enrich_audio` with `wait: false` and persist `enrichment.job_id`.
+3. Resume with `get_audio`; while status is `pending` or `processing`, wait and call it again. Or call `enrich_audio` with `wait: true` and a bounded `timeout_seconds`.
+4. On `complete`, return the original plus available text, WebVTT, and timestamped JSON URLs. Use `sign_audio_url` to refresh all private URLs.
 
-Audio originals have an approved global maximum of 25,000,000 bytes. This is not a plan allowance. URL import
-uses the same product limit. The original is preserved without transcoding; editing, conversion, HLS/DASH, and
-audio transcription are intentionally unsupported. Private audio never falls back to a public URL.
+Audio originals and enrichment sources have an approved global maximum of 25,000,000 bytes; enrichment additionally
+accepts up to 10 minutes. The file ceiling is not a plan allowance. Audio and video enrichment share the existing
+plan allowance. A local wait timeout does not cancel the server job. The original is preserved without transcoding;
+editing, conversion, HLS/DASH, summaries, chapters, show notes, promo copy, and storyboards remain unsupported.
+Private audio never falls back to a public URL.
 
 Local binary upload intentionally uses the API's direct MP4 route and rejects files over 100 MB before reading them.
 Use an official SDK's resumable upload for larger local files. URL imports require a public HTTPS source. Optimization

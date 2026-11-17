@@ -30,6 +30,8 @@ import {
 import {
   deleteAudio,
   deleteAudioInputSchema,
+  enrichAudio,
+  enrichAudioInputSchema,
   getAudio,
   getAudioInputSchema,
   listAudio,
@@ -279,6 +281,18 @@ function buildServer(): McpServer {
   );
 
   server.registerTool(
+    "enrich_audio",
+    {
+      title: "Enrich audio",
+      description:
+        "Start or resume transcription for a hosted aud_ asset. Returns stable asset/job IDs immediately by default, " +
+        "or polls with bounded backoff when wait=true. Produces plain text, WebVTT, and timestamped JSON when complete; no storyboard.",
+      inputSchema: enrichAudioInputSchema,
+    },
+    (args) => enrichAudio(args)
+  );
+
+  server.registerTool(
     "list_audio",
     {
       title: "List audio",
@@ -291,8 +305,8 @@ function buildServer(): McpServer {
   server.registerTool(
     "get_audio",
     {
-      title: "Get audio",
-      description: "Get original URL, privacy, expiry, container, codec, duration, sample rate, channels, and organization by stable aud_ ID.",
+      title: "Get audio status and artifacts",
+      description: "Get the original, transcription job state, available transcript URLs, privacy, expiry, media metadata, and organization by stable aud_ ID.",
       inputSchema: getAudioInputSchema,
     },
     (args) => getAudio(args)
@@ -311,8 +325,8 @@ function buildServer(): McpServer {
   server.registerTool(
     "sign_audio_url",
     {
-      title: "Sign audio URL",
-      description: "Mint a fresh time-limited URL for a private audio original. This does not change asset privacy or deletion TTL.",
+      title: "Sign audio URLs",
+      description: "Mint fresh time-limited original and available transcript URLs for private audio. This does not change privacy or deletion TTL.",
       inputSchema: signAudioUrlInputSchema,
     },
     (args) => signAudioUrl(args)
@@ -322,7 +336,7 @@ function buildServer(): McpServer {
     "delete_audio",
     {
       title: "Delete audio",
-      description: "Permanently delete an audio original and release its storage accounting.",
+      description: "Permanently delete an audio original, transcript artifacts, and active-job state, releasing applicable storage and reserved enrichment seconds.",
       inputSchema: deleteAudioInputSchema,
     },
     (args) => deleteAudio(args)
