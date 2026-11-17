@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
   deleteAudio,
+  enrichAudio,
   getAudio,
   listAudio,
   signAudioUrl,
@@ -136,5 +137,55 @@ describe("local MCP audio tools", () => {
       collection_id: null,
     });
     expect(JSON.parse(String(calls[3]!.init.body))).toEqual({ expires_in: 300 });
+  });
+
+  it("starts audio enrichment and returns stable IDs immediately", async () => {
+    globalThis.fetch = vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
+      calls.push({ url: String(url), init: init ?? {} });
+      return response({ data: { id: "aud_1", enrichment: { job_id: "aen_1", status: "pending" } } }, 202);
+    }) as typeof fetch;
+
+    expect(result(await enrichAudio({ id: "aud/1", wait: false }))).toMatchObject({
+      id: "aud_1",
+      enrichment: { job_id: "aen_1", status: "pending" },
+    });
+    expect(new URL(calls[0]!.url).pathname).toBe("/v1/audio/aud%2F1/enrich");
+    expect(calls[0]!.init.method).toBe("POST");
+  });
+
+  it("polls audio enrichment with backoff and reports local timeout without cancellation", async () => {
+    vi.useFakeTimers();
+    const responses = [
+      { data: { id: "aud_1", enrichment: { job_id: "aen_1", status: "processing" } } },
+      {
+        data: {
+          id: "aud_1",
+          enrichment: {
+            job_id: "aen_1",
+            status: "complete",
+            transcript: { status: "complete", text_url: "https://img.example/transcript.txt" },
+          },
+        },
+      },
+    ];
+    globalThis.fetch = vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
+      calls.push({ url: String(url), init: init ?? {} });
+      return response(responses.shift());
+    }) as typeof fetch;
+    const pending = enrichAudio({ id: "aud_1", wait: true, timeout_seconds: 10 });
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(result(await pending)).toMatchObject({
+      enrichment: { status: "complete", transcript: { text_url: "https://img.example/transcript.txt" } },
+    });
+    expect(new URL(calls[1]!.url).pathname).toBe("/v1/audio/aud_1");
+    vi.useRealTimers();
+
+    globalThis.fetch = vi.fn(async () =>
+      response({ data: { id: "aud_1", enrichment: { job_id: "aen_1", status: "pending" } } }, 202)
+    ) as typeof fetch;
+    expect(result(await enrichAudio({ id: "aud_1", wait: true, timeout_seconds: 0 }))).toMatchObject({
+      enrichment: { status: "pending" },
+      wait_timed_out: true,
+    });
   });
 });
