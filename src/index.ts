@@ -43,6 +43,15 @@ import {
   uploadAudio,
   uploadAudioInputSchema,
 } from "./tools/audio.js";
+import {
+  createCustomDomain,
+  createCustomDomainInputSchema,
+  customDomainIdInputSchema,
+  deleteCustomDomain,
+  listCustomDomains,
+  listCustomDomainsInputSchema,
+  refreshCustomDomain,
+} from "./tools/custom-domains.js";
 
 // On the stdio transport, STDOUT is the MCP protocol channel — anything written
 // there that isn't a framed JSON-RPC message corrupts the stream. All human/log
@@ -61,7 +70,7 @@ const transformHint =
   "valid transform URL for you. PDFs are forced downloads and reject transforms. See https://pixelvault.dev/docs/transforms/.";
 
 function buildServer(): McpServer {
-  const server = new McpServer({ name: "pixelvault-local", version: "0.6.0" });
+  const server = new McpServer({ name: "pixelvault-local", version: "0.8.0" });
 
   server.registerTool(
     "upload_image",
@@ -341,6 +350,50 @@ function buildServer(): McpServer {
     },
     (args) => deleteAudio(args)
   );
+  server.registerTool(
+    "list_custom_domains",
+    {
+      title: "List custom domains",
+      description:
+        "List custom domains, readiness, DNS records, and plan capacity for the active project. " +
+        "Media responses include branded_url when a domain is ready.",
+      inputSchema: listCustomDomainsInputSchema,
+    },
+    () => listCustomDomains(),
+  );
+
+  server.registerTool(
+    "create_custom_domain",
+    {
+      title: "Create custom domain",
+      description:
+        "Attach a customer-owned hostname to the active project and return the required CNAME and optional TXT verification records.",
+      inputSchema: createCustomDomainInputSchema,
+    },
+    (args) => createCustomDomain(args),
+  );
+
+  server.registerTool(
+    "refresh_custom_domain",
+    {
+      title: "Refresh custom domain",
+      description: "Refresh DNS and certificate status after changing the hostname's records.",
+      inputSchema: customDomainIdInputSchema,
+    },
+    (args) => refreshCustomDomain(args),
+  );
+
+  server.registerTool(
+    "delete_custom_domain",
+    {
+      title: "Delete custom domain",
+      description:
+        "Remove a custom domain. Canonical img.pixelvault.dev URLs keep working.",
+      inputSchema: customDomainIdInputSchema,
+    },
+    (args) => deleteCustomDomain(args),
+  );
+
   return server;
 }
 
