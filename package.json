@@ -1,6 +1,6 @@
 {
   "name": "@pixelvault-dev/local-mcp",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Local stdio MCP server for PixelVault image, PDF, video, and audio hosting and transcription by file path or URL",
   "type": "module",
   "bin": {

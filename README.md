@@ -65,9 +65,12 @@ The server also reads `~/.pixelvault/config.json` if you've authenticated with t
 | `enrich_audio` | Start/resume transcription by `aud_` ID. Return IDs immediately or use bounded polling for text, WebVTT, and timestamped JSON. |
 | `list_audio` / `get_audio` | Discover audio, transcription status/artifacts, and detected media metadata by stable `aud_` ID. |
 | `update_audio` / `sign_audio_url` / `delete_audio` | Update organization/metadata, mint fresh private original/transcript URLs, or delete audio and artifacts. |
+| `list_custom_domains` | List domains on the active project, DNS/certificate readiness, required records, and account plan capacity. |
+| `create_custom_domain` / `refresh_custom_domain` / `delete_custom_domain` | Attach a customer-owned hostname, re-check readiness after DNS changes, or remove it. Canonical URLs keep working after removal. |
 
 Image CDN URLs support on-the-fly transforms via query params — see the
 [transforms docs](https://pixelvault.dev/docs/transforms/). PDFs are download-only attachments and do not support transforms.
+Media API results keep canonical `url` and include optional `branded_url` when the active project has a ready custom domain. Use the returned branded value; do not rebuild signed links.
 
 ### Resume-safe video workflow
 
